@@ -1,0 +1,12 @@
+# Ignore Composer dependencies
+vendor/
+
+# Ignore environment-specific files
+.env
+.env.local
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+.DS_Store
+/.php-cs-fixer.cache

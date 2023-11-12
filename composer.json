@@ -1,0 +1,21 @@
+{
+    "name": "briancolinger/trail-cam-sorter-php",
+    "description": "With `trail-cam-sorter` you can efficiently process videos files concurrently, extract essential metadata such as date, time, and camera name, and organize the files based on the extracted metadata.",
+    "type": "project",
+    "license": "GPL-3.0",
+    "autoload": {
+        "psr-4": {
+            "Briancolinger\\TrailCamSorterPhp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Brian Colinger",
+            "email": "briancolinger@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "ext-gd": "*"
+    }
+}
