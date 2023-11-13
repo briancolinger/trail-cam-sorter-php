@@ -318,11 +318,6 @@ class TrailCamSorter
             return;
         }
 
-        // Skip the parent directory of the output directory.
-        if (str_starts_with($dir, dirname($this->getOutputDir()))) {
-            return;
-        }
-
         foreach (
             new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
@@ -742,6 +737,11 @@ class TrailCamSorter
                 throw new Exception('Failed to crop image.');
             }
 
+            // Convert the image to grayscale.
+            if (!imagefilter($cropped, IMG_FILTER_GRAYSCALE)) {
+                throw new Exception('Failed to convert image to grayscale.');
+            }
+
             // Create a blank template image.
             $templateWidth  = 520;
             $templateHeight = 60;
@@ -818,6 +818,11 @@ class TrailCamSorter
 
         imagecopy($result, $image1, 0, 0, 0, 0, $width1, $height1);
         imagecopy($result, $image2, 0, $height1, 0, 0, $width2, $height2);
+
+        // Convert the image to grayscale.
+        if (!imagefilter($result, IMG_FILTER_GRAYSCALE)) {
+            throw new Exception('Failed to convert image to grayscale.');
+        }
 
         return $result;
     }
