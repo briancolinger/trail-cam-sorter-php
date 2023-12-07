@@ -192,15 +192,8 @@ class TrailCamSorter
             // Set the input file.
             $this->setInputFile($inputFile);
 
-            // Skip if the file is an ignored file.
-            if ($this->isIgnoredFile()) {
-                continue;
-            }
-
-            // Check if the file has an allowed media format extension.
-            if (!$this->isAllowedMediaFormat()) {
-                continue;
-            }
+            // Increment the files processed counter.
+            $this->incrementFilesProcessed();
 
             // Run the do process file loop.
             if (!$this->doProcessFile()) {
@@ -212,9 +205,6 @@ class TrailCamSorter
 
             // Delete empty directories.
             $this->deleteEmptyDirs(dirname($this->getInputFile()->getPath()));
-
-            // Increment the files processed counter.
-            $this->incrementFilesProcessed();
 
             // Check if the processing limit has been reached.
             if ($this->hasReachedLimit()) {
@@ -342,9 +332,9 @@ class TrailCamSorter
         // Output buffer.
         $output = [];
 
-        $filesProcessed = number_format($this->getFilesProcessed() + 1);
+        $filesProcessed = number_format($this->getFilesProcessed());
         $filesTotal     = number_format($this->getInputFilesTotal());
-        $percent        = number_format(($this->getFilesProcessed() + 1) / $this->getInputFilesTotal() * 100, 2) . '%';
+        $percent        = number_format(($this->getFilesProcessed()) / $this->getInputFilesTotal() * 100, 2) . '%';
 
         $output[] = sprintf('Progress: %s of %s (%s)', $filesProcessed, $filesTotal, $percent);
         $output[] = 'Input File: ' . $this->getInputFile();
@@ -485,9 +475,39 @@ class TrailCamSorter
         // Sort the file paths naturally.
         natsort($filePaths);
 
-        // Set the input files.
-        $this->setInputFiles($filePaths);
-        $this->setInputFilesTotal(count($filePaths));
+        // Set the filtered input files.
+        $this->setInputFiles($this->filterInputFiles($filePaths));
+        // Set the input files total.
+        $this->setInputFilesTotal(count($this->getInputFiles()));
+    }
+
+    /**
+     * Filter the input files.
+     *
+     * @param array $inputFiles
+     *
+     * @return array
+     */
+    private function filterInputFiles(array $inputFiles): array
+    {
+        return array_filter($inputFiles, function (SplFileInfo $file) {
+            // Skip if the item is not a file.
+            if (!$file->isFile()) {
+                return false;
+            }
+
+            // Skip if the file is an ignored file.
+            if ($this->isIgnoredFile($file)) {
+                return false;
+            }
+
+            // Skip if the file is not an allowed media format.
+            if (!$this->isAllowedMediaFormat($file)) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**
@@ -887,12 +907,14 @@ class TrailCamSorter
     /**
      * Check if the file is in the ignored files list.
      *
+     * @param SplFileInfo $file
+     *
      * @return bool
      */
-    private function isIgnoredFile(): bool
+    private function isIgnoredFile(SplFileInfo $file): bool
     {
         // Ignore files and directories specified in IgnoredFiles enum.
-        if (in_array($this->getInputFile()->getBasename(), array_column(IgnoredFiles::cases(), 'value'))) {
+        if (in_array($file->getBasename(), array_column(IgnoredFiles::cases(), 'value'))) {
             return true;
         }
 
@@ -902,12 +924,14 @@ class TrailCamSorter
     /**
      * Check if the file has an allowed media format extension.
      *
+     * @param SplFileInfo $file
+     *
      * @return bool
      */
-    private function isAllowedMediaFormat(): bool
+    private function isAllowedMediaFormat(SplFileInfo $file): bool
     {
         // Get the file extension.
-        $extension = strtolower($this->getInputFile()->getExtension());
+        $extension = strtolower($file->getExtension());
 
         // Check if the file has an allowed media format extension.
         if (!in_array($extension, array_column(MediaFormat::cases(), 'value'))) {
