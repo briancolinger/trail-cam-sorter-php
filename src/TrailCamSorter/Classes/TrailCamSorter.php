@@ -994,7 +994,10 @@ class TrailCamSorter
         );
 
         // Execute Tesseract and capture the output.
-        $output = trim(shell_exec($tesseractCommand));
+        $output = shell_exec($tesseractCommand);
+        if (!empty($output)) {
+            $output = trim($output);
+        }
 
         // Delete the temporary image file.
         unlink($tempImageFile);
